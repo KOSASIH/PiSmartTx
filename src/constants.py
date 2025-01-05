@@ -1,5 +1,3 @@
-# src/constants.py
-
 """
 Pi Coin Configuration Constants
 This module contains constants related to the Pi Coin cryptocurrency.
@@ -62,5 +60,22 @@ PI_COIN_API_KEY_EXPIRATION = 3600  # API key expiration time in seconds
 # Pi Coin Regulatory Compliance
 PI_COIN_KYC_REQUIRED = True  # Whether KYC is required for transactions
 PI_COIN_COMPLIANCE_JURISDICTIONS = ["US", "EU", "UK"]  # Jurisdictions for compliance
+
+# Pi Coin Advanced Security Features
+PI_COIN_TWO_FACTOR_AUTHENTICATION = True  # Enable 2FA for user accounts
+PI_COIN_DDOS_PROTECTION_ENABLED = True  # Enable DDoS protection
+PI_COIN_FRAUD_DETECTION_ENABLED = True  # Enable fraud detection mechanisms
+
+# Pi Coin Network Resilience
+PI_COIN_FORK_THRESHOLD = 0.1  # Threshold for considering a fork (10%)
+PI_COIN_REORG_LIMIT = 6  # Maximum number of blocks that can be reorganized
+
+# Pi Coin User Experience Enhancements
+PI_COIN_TRANSACTION_CONFIRMATIONS = 6  # Number of confirmations required for a transaction
+PI_COIN_USER_NOTIFICATION_ENABLED = True  # Enable user notifications for transactions
+
+# Pi Coin Additional Features
+PI_COIN_MULTISIG_SUPPORT = True  # Support for multi-signature transactions
+PI_COIN_SMART_CONTRACTS_ENABLED = True  # Enable smart contracts functionality
 
 # Additional constants can be added here as needed
