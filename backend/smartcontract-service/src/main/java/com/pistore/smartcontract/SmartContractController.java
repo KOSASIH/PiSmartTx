@@ -2,12 +2,11 @@
 package com.pistore.smartcontract;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/smartcontract")
+@RequestMapping("/api/transactions")
 public class SmartContractController {
     @Autowired
     private SmartContractService smartContractService;
@@ -15,14 +14,19 @@ public class SmartContractController {
     @PostMapping("/create-transaction")
     public TransactionDTO createTransaction(@RequestBody TransactionRequest request) {
         return smartContractService.createTransaction(
-            request.getUserId(), 
-            request.getMerchantId(), 
-            request.getAmount()
+            request.getUserId(),
+            request.getMerchantId(),
+            request.getAmountInPi()
         );
     }
 
     @PostMapping("/execute-transaction")
     public TransactionDTO executeTransaction(@RequestBody String transactionId) {
         return smartContractService.executeTransaction(transactionId);
+    }
+
+    @GetMapping("/merchant")
+    public List<TransactionDTO> getMerchantTransactions(@RequestParam String merchantId) {
+        return smartContractService.getMerchantTransactions(merchantId);
     }
 }
