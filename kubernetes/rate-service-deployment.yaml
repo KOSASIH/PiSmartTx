@@ -1,0 +1,20 @@
+# kubernetes/rate-service-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rate-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rate-service
+  template:
+    metadata:
+      labels:
+        app: rate-service
+    spec:
+      containers:
+      - name: rate-service
+        image: pistore/rate-service:latest
+        ports:
+        - containerPort: 8080
