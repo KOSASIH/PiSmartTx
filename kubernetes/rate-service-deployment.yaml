@@ -18,3 +18,14 @@ spec:
         image: pistore/rate-service:latest
         ports:
         - containerPort: 8080
+        env:
+        - name: OKX_API_KEY
+          value: "your_okx_api_key"
+        - name: BITGET_API_KEY
+          value: "your_bitget_api_key"
+        - name: PIONEX_API_KEY
+          value: "your_pionex_api_key"
+        - name: MEXC_API_KEY
+          value: "your_mexc_api_key"
+        - name: GATEIO_API_KEY
+          value: "your_gateio_api_key"
