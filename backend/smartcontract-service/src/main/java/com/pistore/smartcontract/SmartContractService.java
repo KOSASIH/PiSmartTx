@@ -16,14 +16,13 @@ public class SmartContractService {
     @Autowired
     private RestTemplate restTemplate;
 
-    public TransactionDTO createTransaction(String userId, String merchantId, double amountInPi) {
-        // Fetch Pi rate
-        double piRate = getPiRate();
+    public TransactionDTO createTransaction(String userId, String merchantId, double amountInPi, String source) {
+        String rateType = source.equals("mining") ? "internal" : "external";
+        double piRate = getPiRate(rateType);
         double amountInUSD = amountInPi * piRate;
 
-        // Validate transaction
         if (!isValidTransaction(merchantId, amountInUSD)) {
-            throw new IllegalArgumentException("Transaction amount invalid based on Pi rate");
+            throw new IllegalArgumentException("Jumlah transaksi tidak valid");
         }
 
         TransactionDTO transaction = new TransactionDTO();
@@ -32,6 +31,8 @@ public class SmartContractService {
         transaction.setMerchantId(merchantId);
         transaction.setAmount(amountInPi);
         transaction.setUsdAmount(amountInUSD);
+        transaction.setRateType(rateType);
+        transaction.setSource(source);
         transaction.setStatus("pending");
         mongoTemplate.save(transaction, "transactions");
         return transaction;
@@ -42,7 +43,6 @@ public class SmartContractService {
         if (transaction != null) {
             transaction.setStatus("completed");
             mongoTemplate.save(transaction, "transactions");
-            // TODO: Integrate with Pi Network blockchain when available
         }
         return transaction;
     }
@@ -51,18 +51,17 @@ public class SmartContractService {
         return mongoTemplate.find(Query.query(Criteria.where("merchantId").is(merchantId)), TransactionDTO.class, "transactions");
     }
 
-    private double getPiRate() {
-        String url = "http://rate-service/api/rate/pi";
+    private double getPiRate(String type) {
+        String url = "http://rate-service/api/rate/pi?type=" + type;
         RateDTO rate = restTemplate.getForObject(url, RateDTO.class);
-        return rate != null ? rate.getRate() : 314159.0; // Fallback rate
+        return rate != null ? rate.getRate() : (type.equals("internal") ? 314159.0 : 0.8111);
     }
 
     private boolean isValidTransaction(String merchantId, double amountInUSD) {
-        // Example: Ensure amount is within acceptable range
-        return amountInUSD >= 0.01; // Minimum transaction $0.01
+        return amountInUSD >= 0.01;
     }
 
     private String generateTransactionId() {
         return "TX-" + System.currentTimeMillis();
     }
-            }
+        }
