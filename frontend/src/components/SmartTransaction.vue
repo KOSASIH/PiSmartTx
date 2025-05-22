@@ -1,20 +1,25 @@
 <!-- frontend/src/components/SmartTransaction.vue -->
 <template>
   <div class="smart-transaction">
-    <h2>{{ isMerchant ? 'Process Transaction' : 'Initiate Transaction' }}</h2>
+    <h2>{{ isMerchant ? 'Proses Transaksi' : 'Mulai Transaksi' }}</h2>
     <form @submit.prevent="createTransaction">
-      <input v-model="merchantId" placeholder="Merchant ID" required v-if="!isMerchant" />
-      <input v-model="userId" placeholder="Customer ID" required v-if="isMerchant" />
-      <input v-model.number="amountInPi" type="number" placeholder="Amount in Pi" step="0.0001" required />
-      <p>Equivalent: ${{ amountInUSD.toLocaleString() }} USD</p>
-      <button type="submit">Create Transaction</button>
+      <input v-model="merchantId" placeholder="ID Merchant" required v-if="!isMerchant" />
+      <input v-model="userId" placeholder="ID Pelanggan" required v-if="isMerchant" />
+      <input v-model.number="amountInPi" type="number" placeholder="Jumlah Pi" step="0.0001" required />
+      <select v-model="source">
+        <option value="mining">Pi dari Penambangan</option>
+        <option value="exchange">Pi dari Bursa</option>
+      </select>
+      <p>Nilai: ${{ amountInUSD.toLocaleString() }} USD ({{ source === 'mining' ? 'Konsensus' : 'Bursa' }})</p>
+      <button type="submit">Buat Transaksi</button>
     </form>
     <div v-if="transaction">
-      <p>Transaction ID: {{ transaction.id }}</p>
-      <p>Amount: {{ transaction.amount }} Pi (${{ transaction.usdAmount.toLocaleString() }})</p>
+      <p>ID Transaksi: {{ transaction.id }}</p>
+      <p>Jumlah: {{ transaction.amount }} Pi (${{ transaction.usdAmount.toLocaleString() }})</p>
+      <p>Sumber: {{ transaction.source === 'mining' ? 'Penambangan' : 'Bursa' }}</p>
       <p>Status: {{ transaction.status }}</p>
       <button v-if="transaction.status === 'pending'" @click="executeTransaction">
-        {{ isMerchant ? 'Confirm Receipt' : 'Confirm Payment' }}
+        {{ isMerchant ? 'Konfirmasi Penerimaan' : 'Konfirmasi Pembayaran' }}
       </button>
     </div>
   </div>
@@ -35,38 +40,45 @@ export default {
       merchantId: '',
       userId: '',
       amountInPi: 0,
-      piRate: 0,
+      source: 'mining',
+      internalRate: 0,
+      externalRate: 0,
       amountInUSD: 0,
       transaction: null,
     };
   },
   async mounted() {
-    await this.fetchPiRate();
+    await this.fetchRates();
   },
   methods: {
-    async fetchPiRate() {
+    async fetchRates() {
       try {
-        const response = await axios.get('/api/rate/pi');
-        this.piRate = response.data.rate;
+        const [internalResponse, externalResponse] = await Promise.all([
+          axios.get('/api/rate/pi?type=internal'),
+          axios.get('/api/rate/pi?type=external'),
+        ]);
+        this.internalRate = internalResponse.data.rate;
+        this.externalRate = externalResponse.data.rate;
         this.updateUSDAmount();
       } catch (error) {
-        console.error('Error fetching Pi rate:', error);
-        this.piRate = 314159.0; // Fallback
+        console.error('Gagal mengambil nilai:', error);
+        this.internalRate = 314159.0;
+        this.externalRate = 0.8111;
         this.updateUSDAmount();
       }
     },
     updateUSDAmount() {
-      this.amountInUSD = this.amountInPi * this.piRate;
+      this.amountInUSD = this.amountInPi * (this.source === 'mining' ? this.internalRate : this.externalRate);
     },
     async createTransaction() {
       try {
         const payload = this.isMerchant
-          ? { userId: this.userId, merchantId: this.$store.state.merchantId, amountInPi: this.amountInPi }
-          : { userId: this.$store.state.userId, merchantId: this.merchantId, amountInPi: this.amountInPi };
+          ? { userId: this.userId, merchantId: this.$store.state.merchantId, amountInPi: this.amountInPi, source: this.source }
+          : { userId: this.$store.state.userId, merchantId: this.merchantId, amountInPi: this.amountInPi, source: this.source };
         const response = await axios.post('/api/transactions/create-transaction', payload);
         this.transaction = response.data;
       } catch (error) {
-        console.error('Error creating transaction:', error);
+        console.error('Gagal membuat transaksi:', error);
       }
     },
     async executeTransaction() {
@@ -74,12 +86,15 @@ export default {
         const response = await axios.post('/api/transactions/execute-transaction', this.transaction.id);
         this.transaction = response.data;
       } catch (error) {
-        console.error('Error executing transaction:', error);
+        console.error('Gagal mengeksekusi transaksi:', error);
       }
     },
   },
   watch: {
     amountInPi() {
+      this.updateUSDAmount();
+    },
+    source() {
       this.updateUSDAmount();
     },
   },
@@ -90,7 +105,7 @@ export default {
 .smart-transaction {
   padding: 20px;
 }
-input {
+input, select {
   display: block;
   margin: 10px 0;
   padding: 8px;
