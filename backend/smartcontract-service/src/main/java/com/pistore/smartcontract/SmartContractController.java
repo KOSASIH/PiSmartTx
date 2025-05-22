@@ -16,7 +16,8 @@ public class SmartContractController {
         return smartContractService.createTransaction(
             request.getUserId(),
             request.getMerchantId(),
-            request.getAmountInPi()
+            request.getAmountInPi(),
+            request.getSource()
         );
     }
 
