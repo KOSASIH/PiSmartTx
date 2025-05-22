@@ -1,0 +1,103 @@
+<!-- frontend/src/components/VoiceAssistant.vue -->
+<template>
+  <div class="voice-assistant">
+    <h2>Voice Assistant</h2>
+    <button @click="startListening" :disabled="isListening">
+      {{ isListening ? 'Listening...' : 'Start Voice Command' }}
+    </button>
+    <p>Command: {{ command }}</p>
+    <p>Response: {{ response }}</p>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  data() {
+    return {
+      isListening: false,
+      command: '',
+      response: '',
+    };
+  },
+  methods: {
+    startListening() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'id-ID'; // Set to Indonesian for local users
+      recognition.onresult = (event) => {
+        this.command = event.results[0][0].transcript;
+        this.processCommand(this.command);
+        recognition.stop();
+      };
+      recognition.onend = () => {
+        this.isListening = false;
+      };
+      recognition.start();
+      this.isListening = true;
+    },
+    async processCommand(command) {
+      // Simple command parsing
+      if (command.toLowerCase().includes('find merchant')) {
+        try {
+          const position = await this.getUserLocation();
+          const response = await axios.get('/api/ar/merchants', {
+            params: {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              radius: 1000,
+            },
+          });
+          this.response = `Found ${response.data.length} merchants nearby.`;
+          this.speak(this.response);
+        } catch (error) {
+          this.response = 'Error finding merchants.';
+          this.speak(this.response);
+        }
+      } else if (command.toLowerCase().includes('pay')) {
+        // Extract amount and merchant from command (simplified)
+        const amount = 10; // Placeholder, use NLP for real parsing
+        const merchantId = 'merchant1'; // Placeholder
+        try {
+          const response = await axios.post('/api/smartcontract/create-transaction', {
+            userId: this.$store.state.userId,
+            merchantId,
+            amount,
+          });
+          this.response = `Transaction created with ID ${response.data.id}.`;
+          this.speak(this.response);
+        } catch (error) {
+          this.response = 'Error creating transaction.';
+          this.speak(this.response);
+        }
+      } else {
+        this.response = 'Command not recognized.';
+        this.speak(this.response);
+      }
+    },
+    speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'id-ID';
+      window.speechSynthesis.speak(utterance);
+    },
+    getUserLocation() {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
+    },
+  },
+};
+</script>
+
+<style scoped>
+.voice-assistant {
+  padding: 20px;
+}
+button {
+  padding: 10px;
+  background: #28a745;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+</style>
