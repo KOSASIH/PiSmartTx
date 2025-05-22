@@ -1,8 +1,9 @@
 <!-- frontend/src/components/PriceDisplay.vue -->
 <template>
   <div class="price-display">
-    <p>Price: {{ priceInPi }} Pi</p>
-    <p>Equivalent: ${{ priceInUSD.toLocaleString() }} USD</p>
+    <p>Harga: {{ priceInPi }} Pi</p>
+    <p>Nilai Konsensus (Mining): ${{ priceInInternalUSD.toLocaleString() }} USD</p>
+    <p>Nilai Bursa (OKX/Bitget/Pionex/MEXC/Gate.io): ${{ priceInExternalUSD.toLocaleString() }} USD</p>
   </div>
 </template>
 
@@ -18,23 +19,32 @@ export default {
   },
   data() {
     return {
-      piRate: 0,
-      priceInUSD: 0,
+      internalRate: 0,
+      externalRate: 0,
+      priceInInternalUSD: 0,
+      priceInExternalUSD: 0,
     };
   },
   async mounted() {
-    await this.fetchPiRate();
+    await this.fetchRates();
   },
   methods: {
-    async fetchPiRate() {
+    async fetchRates() {
       try {
-        const response = await axios.get('/api/rate/pi');
-        this.piRate = response.data.rate;
-        this.priceInUSD = this.priceInPi * this.piRate;
+        const [internalResponse, externalResponse] = await Promise.all([
+          axios.get('/api/rate/pi?type=internal'),
+          axios.get('/api/rate/pi?type=external'),
+        ]);
+        this.internalRate = internalResponse.data.rate;
+        this.externalRate = externalResponse.data.rate;
+        this.priceInInternalUSD = this.priceInPi * this.internalRate;
+        this.priceInExternalUSD = this.priceInPi * this.externalRate;
       } catch (error) {
-        console.error('Error fetching Pi rate:', error);
-        this.piRate = 314159.0; // Fallback
-        this.priceInUSD = this.priceInPi * this.piRate;
+        console.error('Gagal mengambil nilai:', error);
+        this.internalRate = 314159.0;
+        this.externalRate = 0.8111; // Fallback ke harga OKX
+        this.priceInInternalUSD = this.priceInPi * this.internalRate;
+        this.priceInExternalUSD = this.priceInPi * this.externalRate;
       }
     },
   },
