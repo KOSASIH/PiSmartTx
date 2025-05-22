@@ -5,6 +5,7 @@ public class TransactionRequest {
     private String userId;
     private String merchantId;
     private double amountInPi;
+    private String source;
 
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
@@ -12,4 +13,6 @@ public class TransactionRequest {
     public void setMerchantId(String merchantId) { this.merchantId = merchantId; }
     public double getAmountInPi() { return amountInPi; }
     public void setAmountInPi(double amountInPi) { this.amountInPi = amountInPi; }
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }
