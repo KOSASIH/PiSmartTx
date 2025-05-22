@@ -5,10 +5,10 @@ public class TransactionDTO {
     private String id;
     private String userId;
     private String merchantId;
-    private double amount;
+    private double amount; // In Pi
+    private double usdAmount; // In USD
     private String status;
 
-    // Getters and setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getUserId() { return userId; }
@@ -17,6 +17,8 @@ public class TransactionDTO {
     public void setMerchantId(String merchantId) { this.merchantId = merchantId; }
     public double getAmount() { return amount; }
     public void setAmount(double amount) { this.amount = amount; }
+    public double getUsdAmount() { return usdAmount; }
+    public void setUsdAmount(double usdAmount) { this.usdAmount = usdAmount; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 }
