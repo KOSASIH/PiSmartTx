@@ -1,15 +1,17 @@
 <!-- frontend/src/components/MerchantDashboard.vue -->
 <template>
   <div class="merchant-dashboard">
-    <h2>Merchant Dashboard</h2>
-    <h3>Recent Transactions</h3>
+    <h2>Dashboard Merchant</h2>
+    <h3>Transaksi Terbaru</h3>
     <div v-for="transaction in transactions" :key="transaction.id" class="transaction">
-      <p>Transaction ID: {{ transaction.id }}</p>
-      <p>Amount: {{ transaction.amount }} Pi (${{ transaction.usdAmount.toLocaleString() }})</p>
+      <p>ID Transaksi: {{ transaction.id }}</p>
+      <p>Jumlah: {{ transaction.amount }} Pi (${{ transaction.usdAmount.toLocaleString() }})</p>
+      <p>Sumber: {{ transaction.source === 'mining' ? 'Penambangan' : 'Bursa' }}</p>
       <p>Status: {{ transaction.status }}</p>
     </div>
-    <h3>Total Earnings</h3>
-    <p>{{ totalPi }} Pi (${{ totalUSD.toLocaleString() }})</p>
+    <h3>Total Pendapatan</h3>
+    <p>Konsensus: {{ totalPi }} Pi (${{ totalInternalUSD.toLocaleString() }})</p>
+    <p>Bursa (OKX/Bitget/Pionex/MEXC/Gate.io): {{ totalPi }} Pi (${{ totalExternalUSD.toLocaleString() }})</p>
   </div>
 </template>
 
@@ -20,23 +22,30 @@ export default {
   data() {
     return {
       transactions: [],
-      piRate: 0,
+      internalRate: 0,
+      externalRate: 0,
       totalPi: 0,
-      totalUSD: 0,
+      totalInternalUSD: 0,
+      totalExternalUSD: 0,
     };
   },
   async mounted() {
-    await this.fetchPiRate();
+    await this.fetchRates();
     await this.fetchTransactions();
   },
   methods: {
-    async fetchPiRate() {
+    async fetchRates() {
       try {
-        const response = await axios.get('/api/rate/pi');
-        this.piRate = response.data.rate;
+        const [internalResponse, externalResponse] = await Promise.all([
+          axios.get('/api/rate/pi?type=internal'),
+          axios.get('/api/rate/pi?type=external'),
+        ]);
+        this.internalRate = internalResponse.data.rate;
+        this.externalRate = externalResponse.data.rate;
       } catch (error) {
-        console.error('Error fetching Pi rate:', error);
-        this.piRate = 314159.0; // Fallback
+        console.error('Gagal mengambil nilai:', error);
+        this.internalRate = 314159.0;
+        this.externalRate = 0.8111;
       }
     },
     async fetchTransactions() {
@@ -46,9 +55,10 @@ export default {
         });
         this.transactions = response.data;
         this.totalPi = this.transactions.reduce((sum, tx) => sum + tx.amount, 0);
-        this.totalUSD = this.totalPi * this.piRate;
+        this.totalInternalUSD = this.totalPi * this.internalRate;
+        this.totalExternalUSD = this.totalPi * this.externalRate;
       } catch (error) {
-        console.error('Error fetching transactions:', error);
+        console.error('Gagal mengambil transaksi:', error);
       }
     },
   },
