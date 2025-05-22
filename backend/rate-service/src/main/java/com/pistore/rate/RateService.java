@@ -2,7 +2,6 @@
 package com.pistore.rate;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import java.util.concurrent.TimeUnit;
@@ -12,24 +11,25 @@ public class RateService {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
     @Autowired
-    private MongoTemplate mongoTemplate;
+    private ExchangeRateClient exchangeRateClient;
 
-    private static final double FIXED_PI_RATE = 314159.0; // 1 Pi = $314,159
+    private static final double INTERNAL_PI_RATE = 314159.0; // 1 Pi = $314,159
 
-    public RateDTO getPiRate() {
-        // Check Redis cache
-        String cacheKey = "pi:USD";
+    public RateDTO getPiRate(String type) {
+        String cacheKey = "pi:" + type + ":USD";
         String cachedRate = redisTemplate.opsForValue().get(cacheKey);
         if (cachedRate != null) {
             return new RateDTO("USD", Double.parseDouble(cachedRate));
         }
 
-        // Save rate to MongoDB for historical tracking
-        RateRecord record = new RateRecord("USD", FIXED_PI_RATE, System.currentTimeMillis());
-        mongoTemplate.save(record, "rate_history");
+        double rate;
+        if (type.equals("internal")) {
+            rate = INTERNAL_PI_RATE;
+        } else {
+            rate = exchangeRateClient.getAveragePiRate();
+        }
 
-        // Cache the rate in Redis for 24 hours
-        redisTemplate.opsForValue().set(cacheKey, String.valueOf(FIXED_PI_RATE), 24, TimeUnit.HOURS);
-        return new RateDTO("USD", FIXED_PI_RATE);
+        redisTemplate.opsForValue().set(cacheKey, String.valueOf(rate), 1, TimeUnit.HOURS);
+        return new RateDTO("USD", rate);
     }
 }
