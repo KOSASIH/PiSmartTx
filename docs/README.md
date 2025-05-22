@@ -1,6 +1,6 @@
-# README.md
+# Dual Value System
 
-## Dual Value System
+## Description
 
 The Pi Store operates on a **Dual Value System**, which allows users to interact with product prices and transactions in two distinct currencies: **Pi** and **USD**. This system is designed to provide flexibility and transparency for users, enabling them to understand the value of their transactions in both internal and external contexts.
 
