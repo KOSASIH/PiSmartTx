@@ -1,0 +1,30 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/pistore
+    redis:
+      host: localhost
+      port: 6379
+okx:
+  api:
+    key: your_okx_key
+    secret: your_okx_secret
+bitget:
+  api:
+    key: your_bitget_key
+    secret: your_bitget_secret
+pionex:
+  api:
+    key: your_pionex_key
+    secret: your_pionex_secret
+mexc:
+  api:
+    key: your_mexc_key
+    secret: your_mexc_secret
+gateio:
+  api:
+    key: your_gateio_key
+    secret: your_gateio_secret
+alchemy:
+  api:
+    key: your_alchemy_key
