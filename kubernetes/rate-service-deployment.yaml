@@ -1,33 +1,132 @@
-# kubernetes/rate-service-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rate-service
+  name: pi-smart-tx-rate-service
+  namespace: pisMart-tx
+  labels:
+    app: pi-smart-tx-rate-service
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
-      app: rate-service
+      app: pi-smart-tx-rate-service
   template:
     metadata:
       labels:
-        app: rate-service
+        app: pi-smart-tx-rate-service
     spec:
       containers:
       - name: rate-service
-        image: pistore/rate-service:latest
+        image: pistore/pi-smart-tx-rate-service:1.0.0
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
+          name: http
         env:
+        - name: SPRING_APPLICATION_NAME
+          value: "pi-smart-tx-rate-service"
+        - name: EXCHANGE_LIST
+          value: "okx,bitget,pionex,mexc,gateio"
+        - name: SERVER_PORT
+          value: "8080"
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
         - name: OKX_API_KEY
-          value: "your_okx_api_key"
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: OKX_API_KEY
+        - name: OKX_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: OKX_API_SECRET
         - name: BITGET_API_KEY
-          value: "your_bitget_api_key"
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: BITGET_API_KEY
+        - name: BITGET_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: BITGET_API_SECRET
         - name: PIONEX_API_KEY
-          value: "your_pionex_api_key"
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: PIONEX_API_KEY
+        - name: PIONEX_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: PIONEX_API_SECRET
         - name: MEXC_API_KEY
-          value: "your_mexc_api_key"
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: MEXC_API_KEY
+        - name: MEXC_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: MEXC_API_SECRET
         - name: GATEIO_API_KEY
-          value: "your_gateio_api_key"
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: GATEIO_API_KEY
+        - name: GATEIO_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: GATEIO_API_SECRET
         - name: ALCHEMY_API_KEY
-          value: "your_alchemy_key"
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: ALCHEMY_API_KEY
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          failureThreshold: 30
+      imagePullSecrets:
+      - name: docker-registry-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pi-smart-tx-rate-service
+  namespace: pisMart-tx
+spec:
+  selector:
+    app: pi-smart-tx-rate-service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: ClusterIP
