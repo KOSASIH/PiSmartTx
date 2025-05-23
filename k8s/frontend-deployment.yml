@@ -1,0 +1,25 @@
+# k8s/frontend-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pi-smart-tx-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pi-smart-tx-frontend
+  template:
+    metadata:
+      labels:
+        app: pi-smart-tx-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: pistore/pi-smart-tx-frontend:1.0.0
+          ports:
+            - containerPort: 80
+          env:
+            - name: VUE_APP_API_BASE_URL
+              value: "https://pi-store-api.example.com"
+            - name: VUE_APP_WS_URL
+              value: "wss://api.mainnet.minepi.com/ws"
