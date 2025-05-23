@@ -1,20 +1,87 @@
-# kubernetes/smartcontract-service-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: smartcontract-service
+  name: pi-smart-tx-smartcontract-service
+  namespace: pisMart-tx
+  labels:
+    app: pi-smart-tx-smartcontract-service
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
-      app: smartcontract-service
+      app: pi-smart-tx-smartcontract-service
   template:
     metadata:
       labels:
-        app: smartcontract-service
+        app: pi-smart-tx-smartcontract-service
     spec:
       containers:
       - name: smartcontract-service
-        image: pistore/smartcontract-service:latest
+        image: pistore/pi-smart-tx-smartcontract-service:1.0.0
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
+          name: http
+        env:
+        - name: SPRING_APPLICATION_NAME
+          value: "pi-smart-tx-smartcontract-service"
+        - name: SERVER_PORT
+          value: "8080"
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
+        - name: PI_NODE_URL
+          value: "https://api.mainnet.minepi.com"
+        - name: PI_CONTRACT_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: PI_CONTRACT_ADDRESS
+        - name: ALCHEMY_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pi-smart-tx-secrets
+              key: ALCHEMY_API_KEY
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          failureThreshold: 30
+      imagePullSecrets:
+      - name: docker-registry-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pi-smart-tx-smartcontract-service
+  namespace: pisMart-tx
+spec:
+  selector:
+    app: pi-smart-tx-smartcontract-service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: ClusterIP
