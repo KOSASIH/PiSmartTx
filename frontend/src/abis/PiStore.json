@@ -1,0 +1,23 @@
+[
+  {
+    "inputs": [{"internalType": "address", "name": "user", "type": "address"}],
+    "name": "validatePiPurity",
+    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "user", "type": "address"},
+      {"internalType": "address", "name": "merchant", "type": "address"},
+      {"internalType": "uint256", "name": "amount", "type": "uint256"},
+      {"internalType": "string", "name": "paymentType", "type": "string"},
+      {"internalType": "bool", "name": "autoConvert", "type": "bool"}
+    ],
+    "name": "submitTransaction",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+  // Other functions
+]
