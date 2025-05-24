@@ -1,0 +1,20 @@
+# kubernetes/smartcontract-service-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pi-smart-tx-smartcontract-service-ingress
+  namespace: pisMart-tx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: smartcontract.pismarttx.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pi-smart-tx-smartcontract-service
+            port:
+              number: 80
