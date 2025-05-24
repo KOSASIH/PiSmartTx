@@ -15,4 +15,4 @@ Originally forked from pi-apps/store-on-pi and tt_car_app.
 5. Deploy backend services (rate-service, smartcontract-service) using Kubernetes.
 
 ## License
-MIT
+[MIT](LICENSE)
